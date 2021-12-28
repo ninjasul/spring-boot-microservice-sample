@@ -3,14 +3,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: fluentd
-  namespace: kube-system
+  namespace: elastic
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: fluentd
-  namespace: kube-system
+  namespace: elastic
 rules:
 - apiGroups:
   - ""
@@ -34,16 +34,17 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: fluentd
-  namespace: kube-system
+  namespace: elastic
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluentd
-  namespace: kube-system
+  namespace: elastic
   labels:
     k8s-app: fluentd-logging
     version: v1
+    kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
@@ -54,12 +55,26 @@ spec:
       labels:
         k8s-app: fluentd-logging
         version: v1
+        kubernetes.io/cluster-service: "true"
     spec:
       serviceAccount: fluentd
       serviceAccountName: fluentd
       tolerations:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
+      initContainers:
+      - name: config-fluentd
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh","-c"]
+        args:
+        - cp /fluentd/etc2/fluent.conf /fluentd/etc/fluent.conf;
+          cp /fluentd/etc2/kubernetes.conf /fluentd/etc/kubernetes.conf;
+        volumeMounts:
+        - name: config-path
+          mountPath: /fluentd/etc
+        - name: config-source
+          mountPath: /fluentd/etc2
       containers:
       - name: fluentd
         image: fluent/fluentd-kubernetes-daemonset:v1-debian-elasticsearch
@@ -70,6 +85,8 @@ spec:
           value: "9200"
         - name: FLUENT_ELASTICSEARCH_SCHEME
           value: http
+        - name: FLUENT_UID
+          value: "0"
         resources:
           limits:
             memory: 200Mi
@@ -82,9 +99,11 @@ spec:
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
+        - name: config-path
+          mountPath: /fluentd/etc
         ports:
-          - containerPort: 24224
-            protocol: UDP
+        - containerPort: 24224
+          protocol: UDP
       terminationGracePeriodSeconds: 30
       volumes:
       - name: varlog
@@ -93,3 +112,8 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
+      - name: config-source
+        configMap:
+          name: fluentd-config
+      - name: config-path
+        emptyDir: {}

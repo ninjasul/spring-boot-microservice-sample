@@ -19,11 +19,19 @@ spec:
       - name: elasticsearch
         image: elastic/elasticsearch:7.14.1
         env:
-        - name: discovery.type
-          value: single-node
+        - name: "discovery.type"
+          value: "single-node"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms512m -Xmx2048m"
+        - name: "xpack.security.enabled"
+          value: "false"
         ports:
         - containerPort: 9200
+          name: elasticsearch-rest
+          protocol: TCP
         - containerPort: 9300
+          name: elasticsearch-nodecom
+          protocol: TCP
 ---
 apiVersion: v1
 kind: Service
