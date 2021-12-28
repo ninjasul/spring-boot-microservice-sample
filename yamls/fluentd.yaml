@@ -101,9 +101,6 @@ spec:
           readOnly: true
         - name: config-path
           mountPath: /fluentd/etc
-        ports:
-        - containerPort: 24224
-          protocol: UDP
       terminationGracePeriodSeconds: 30
       volumes:
       - name: varlog
