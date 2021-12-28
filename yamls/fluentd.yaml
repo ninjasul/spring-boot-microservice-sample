@@ -83,8 +83,8 @@ spec:
           mountPath: /var/lib/docker/containers
           readOnly: true
         ports:
-          - containerPort: 1190
-            protocol: TCP
+          - containerPort: 24224
+            protocol: UDP
       terminationGracePeriodSeconds: 30
       volumes:
       - name: varlog

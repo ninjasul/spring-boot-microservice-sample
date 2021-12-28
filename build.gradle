@@ -24,6 +24,4 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.fluentd:fluent-logger:0.3.4'
     implementation 'com.sndyuk:logback-more-appenders:1.8.3'
-    implementation 'org.komamitsu:fluency-core:2.4.1'
-    implementation 'org.komamitsu:fluency-fluentd:2.4.1'
 }
