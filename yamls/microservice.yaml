@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: microservice-sample-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: microservice-sample
+      tier: app
+  template:
+    metadata:
+      labels:
+        app: microservice-sample
+        tier: app
+    spec:
+      containers:
+        - name: microservice-sample-svc
+          image: ninjasul/microservice-sample:1.0
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservice-sample-svc
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      nodePort: 31000
+  selector:
+      app: microservice-sample
+      tier: app
